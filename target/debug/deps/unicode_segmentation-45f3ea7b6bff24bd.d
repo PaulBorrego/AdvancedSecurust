@@ -1,0 +1,9 @@
+C:\Users\borre\rust_folder\rust_\AdvancedSecurust\target\debug\deps\libunicode_segmentation-45f3ea7b6bff24bd.rmeta: C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\lib.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\grapheme.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\sentence.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\word.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\tables.rs
+
+C:\Users\borre\rust_folder\rust_\AdvancedSecurust\target\debug\deps\unicode_segmentation-45f3ea7b6bff24bd.d: C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\lib.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\grapheme.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\sentence.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\word.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\tables.rs
+
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\lib.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\grapheme.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\sentence.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\word.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\unicode-segmentation-1.11.0\src\tables.rs:

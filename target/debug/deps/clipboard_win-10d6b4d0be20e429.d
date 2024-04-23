@@ -1,0 +1,11 @@
+C:\Users\borre\rust_folder\rust_\AdvancedSecurust\target\debug\deps\libclipboard_win-10d6b4d0be20e429.rmeta: C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\lib.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\sys.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\types.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\formats.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\html.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\raw.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\utils.rs
+
+C:\Users\borre\rust_folder\rust_\AdvancedSecurust\target\debug\deps\clipboard_win-10d6b4d0be20e429.d: C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\lib.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\sys.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\types.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\formats.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\html.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\raw.rs C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\utils.rs
+
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\lib.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\sys.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\types.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\formats.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\html.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\raw.rs:
+C:\Users\borre\.cargo\registry\src\index.crates.io-6f17d22bba15001f\clipboard-win-5.3.0\src\utils.rs:
