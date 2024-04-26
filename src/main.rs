@@ -1,3 +1,4 @@
+use file_explorer::start_up;
 use orion::aead;
 // use orion::errors::UnknownCryptoError;
 // use orion::hazardous::aead::streaming::SecretKey;
@@ -14,12 +15,19 @@ use std::str;
 
 
 mod gui;
-// mod file_explorer;
+mod file_explorer;
 
 
 fn main() {    
-    encrypt_interface_user();
+    if true {
+        let _ = start_up();
+    }
+    if false {
+        encrypt_interface_user();
+    }
 }
+
+
 
 fn write_to_file(s: &[u8], a: &str, encrypt: bool, dir: &str) ->  Result<File, std::io::Error> {
     let p = Path::new(a);
@@ -46,30 +54,6 @@ fn write_to_file(s: &[u8], a: &str, encrypt: bool, dir: &str) ->  Result<File, s
     Ok(file)
 }
 
-// fn decrypt_to_file(s: &[u8], a: &str) ->  Result<File, std::io::Error> {
-//     let mut temp = format!("{}_decrypted.txt",a);
-//     let i = 0;
-//     while Path::new(&temp).exists() {
-//         temp = format!("{}{}",i.to_string(), temp);
-//     }
-//     let p = Path::new(&temp);
-//     let mut file = File::create(p)?;
-//     file.write_all(s)?;
-//     Ok(file)
-// }
-
-// pub fn userwrite_to_file(s: &[u8], a: &str, dir: &str) ->  Result<File, std::io::Error> {
-//     let mut temp = format!("{}_encrypt.txt",a);
-//     let i = 0;
-//     while Path::new(&temp).exists() {
-//         temp = format!("{}{}",i.to_string(), temp);
-//     }
-//     let loc = format!("{}/{}", &dir, &temp);
-//     let p = Path::new(&loc);
-//     let mut file = File::create(p)?;
-//     file.write_all(s)?;
-//     Ok(file)
-// }
 
 fn make_dir_if_needed(path: &str) -> () {
     // Check if the directory exists

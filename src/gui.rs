@@ -143,11 +143,13 @@ impl Application for TextBox {
     fn view(&self) -> Element<'_, Self::Message> {
         let user = text_input("Empty", &self.user,)
         .on_input(Message::UserName)
+        .on_submit(Message::ENTER)
         .padding(10)
         .size(20);
     
         let pass = text_input("", &self.pass,)
         .on_input(Message::Password)
+        .on_submit(Message::ENTER)
         .padding(10)
         .size(20)
         .secure(true)
