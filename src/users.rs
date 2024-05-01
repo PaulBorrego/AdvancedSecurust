@@ -1,8 +1,6 @@
 use std::{collections::HashMap, fs::OpenOptions, io::{stdin, Read}};
 use pad::PadStr;
 
-use orion::aead;
-
 #[derive(PartialEq, Debug)]
 pub struct User {
     pub username: String,
@@ -39,10 +37,6 @@ impl User {
         returning_users
     }
     
-    // fn to_string(&self) -> String {
-    //     format!("Username: |{}| Password: |{}|\n",self.username, self.password)
-    // }
-
     pub fn find(mappy: &HashMap<String,User>) -> Option<String> {
         for _ in 0..3 {
             let mut input = String::new();

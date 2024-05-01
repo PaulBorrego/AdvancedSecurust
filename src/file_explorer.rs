@@ -2,11 +2,14 @@ use iced::widget::image::Handle;
 use iced::{Element, Theme};
 use iced::widget::{button, column, image, row, scrollable, space, text, Button};
 use iced::{Application, Command, Settings, executor, window};
+use std::fs::OpenOptions;
+use std::io::Read;
 // use std::fs::{self, read, read_dir, File, OpenOptions};
 use std::{fs, vec};
 use std::cmp;
 use std::path::{Path, PathBuf};
 use std::collections::HashSet;
+use orion::aead;
 
 pub fn start_up() -> iced::Result {
     let settings = Settings {
@@ -18,6 +21,7 @@ pub fn start_up() -> iced::Result {
         },
     ..Default::default()
     };
+    println!("1");
     Explore::run(settings)
 } 
 
@@ -89,7 +93,27 @@ fn dir_to_paths(user_dir: &Path) -> Vec<PathBuf> {
 
 }
 
-#[derive(Debug,Clone)]
+fn temp_to_slice() -> Vec<u8>{
+    let mut f = OpenOptions::new()
+    .read(true)
+    .open("info/temp.txt")
+    .unwrap();
+       
+    let mut buffer = Vec::new();
+
+    match f.read_to_end(&mut buffer)  {
+        Ok(_) => (),
+        Err(_) => {
+            fs::remove_file("info/temp.txt").expect("Failed To Delete the file \"temp\"");
+            panic!("COULDN'T READ THE FILE");
+        },
+    }
+
+    fs::remove_file("info/temp.txt").expect("Failed To Delete the file \"temp\"");
+
+    buffer
+}
+#[derive(Debug)]
 struct Explore {
     path: PathBuf,
     dir: Vec<PathBuf>,
@@ -98,6 +122,7 @@ struct Explore {
     folder: image::Handle,
     selected: HashSet<PathBuf>,
     moves: bool,
+    // secret_key: aead::SecretKey,
     // it: usize,
 
 }
@@ -121,6 +146,7 @@ impl Application for Explore {
 
 
     fn new(_flags: Self::Flags) -> (Self, iced::Command<Self::Message>) {
+        println!("here");
         (Explore{
             path: fs::canonicalize(PathBuf::from("./")).unwrap(), //gets absolute path
             dir: dir_to_paths(fs::canonicalize(PathBuf::from("./")).unwrap().as_path()),
@@ -129,6 +155,7 @@ impl Application for Explore {
             folder: Handle::from_path("img/Folder.png"),
             selected: HashSet::new(),
             moves: false,
+            // secret_key: aead::SecretKey::from_slice(&temp_to_slice()).unwrap(),
             // it: 0,
         },
         Command::none())

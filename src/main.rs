@@ -1,4 +1,3 @@
-use file_explorer::start_up;
 use orion::aead;
 // use orion::errors::UnknownCryptoError;
 // use orion::hazardous::aead::streaming::SecretKey;
@@ -23,9 +22,11 @@ mod users;
 fn main() {
     if true {
         let _ = login::main();
+        // let _ = login::main();
+        // let _ = file_explorer::start_up();
     }    
     if false {
-        let _ = start_up();
+        let _ = file_explorer::start_up();
     }
     if false {
         encrypt_interface_user();
