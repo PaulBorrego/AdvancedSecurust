@@ -16,10 +16,15 @@ use std::str;
 
 mod gui;
 mod file_explorer;
+mod login;
+mod users;
 
 
-fn main() {    
+fn main() {
     if true {
+        let _ = login::main();
+    }    
+    if false {
         let _ = start_up();
     }
     if false {
