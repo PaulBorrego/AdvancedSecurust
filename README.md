@@ -1,5 +1,5 @@
 Securust uses the orion library to encode files for individual users.
-Using auad::SecretKey to seal and open files which encrypts files of any type.
+Using aead::SecretKey to seal and open files which encrypts files of any type.
 
 
 The program will make users using an iced gui and will hold the users information and SecretKey in a file.
