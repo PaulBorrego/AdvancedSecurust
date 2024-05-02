@@ -1,4 +1,4 @@
-use iced::{widget, Alignment, Element, Font, Pixels, Theme,};
+use iced::{widget, Alignment, Element, Font, Pixels, Theme};
 use iced::widget::{button, column, text,text_input,Space,image, row, scrollable, space,Button};
 use iced::{Application, Command, Settings, executor, window};
 use std::collections::HashMap;
@@ -12,19 +12,19 @@ use crate::users::User;
 // use crate::file_explorer;
 
 use iced::widget::image::Handle;
-use std::io::Read;
 // use std::fs::{self, read, read_dir, File, OpenOptions};
 use std:: vec;
 use std::cmp;
 use std::collections::HashSet;
 
 #[derive(Debug,Clone)]
-enum Scene {
+pub enum Scene {
     LOGIN,
     REGISTER,
     FILES,
 }
 
+//writes to file that keeps user info
 fn write_to_info(mut u: Vec<u8>,mut p: Vec<u8>, s: &[u8]) ->  Result<File, std::io::Error> {
     let mut file = OpenOptions::new()
             .read(true)
@@ -64,7 +64,7 @@ pub fn main() -> iced::Result {
             size: iced::Size { width: 600.0f32, height: 300.0f32 },
             resizable: true,
             decorations: true,
-            level: window::Level::AlwaysOnTop,
+            level: window::Level::Normal,
             position: window::Position::Centered,
             icon: ferry,  
             ..Default::default()
@@ -86,7 +86,7 @@ pub enum Message {
     SELECT,
     SUBMIT,
     ENCODE,
-    DECODE
+    DECODE,
 }
 
 #[derive(Debug)]
@@ -186,6 +186,7 @@ impl Application for TextBox {
                                         self.path = fs::canonicalize(PathBuf::from("./")).unwrap(); //gets absolute path
                                         self.dir = dir_to_paths(fs::canonicalize(PathBuf::from("./")).unwrap().as_path());
                                         self.error = String::new();
+                                        return iced::window::resize(window::Id::MAIN, iced::Size::new(780.0f32,480.0f32));
 
                                     },
                                     false => self.error = String::from("Username or password is incorrect"),
@@ -202,7 +203,7 @@ impl Application for TextBox {
                             self.path = fs::canonicalize(PathBuf::from("./")).unwrap(); //gets absolute path
                             self.dir = dir_to_paths(fs::canonicalize(PathBuf::from("./")).unwrap().as_path());
                             self.error = String::new();
-
+                            return iced::window::resize(window::Id::MAIN, iced::Size::new(780.0f32,480.0f32));
                         }
                         else {
                             self.error = user_password_problems(self.user.as_bytes(), self.pass.as_bytes());
@@ -257,11 +258,11 @@ impl Application for TextBox {
                         },
                     }
                 );
+                self.dir = dir_to_paths(&self.path);
             },
             Message::SCENE(s) => self.scene = s,
             Message::ENCODE => self.encrypt = true,
             Message::DECODE => self.encrypt = false,
-
         }
         Command::none()
     }
@@ -350,14 +351,22 @@ impl Application for TextBox {
                 a.into()
             },
             Scene::FILES => {
-                let number_of_columns = 10;
+
+
+
+                // let window_size = iced::Size::ZERO;
+                // let _ = iced::window::fetch_size(window::Id::MAIN, move |x: iced::Size| x);
+                // println!("{}", window_size.width as u32 / 80);
+                // let number_of_columns = cmp::max(10,window_size.width as usize / 80);
+
+                let number_of_columns = 9;
 
                 let mut vec_of_data: Vec<Element<'_, Self::Message>> = Vec::with_capacity(number_of_columns);
 
                 let a = text(self.path.to_str().unwrap()).size(18);
 
 
-                for column_number in 0..cmp::min(number_of_columns - 1, self.dir.len() - 1) { //Runs at MAX  times
+                for column_number in 0..cmp::min(number_of_columns - 1, self.dir.len()) { //Runs at MAX  times
                     let mut c: Vec<Element<'_, Self::Message>> = vec![];
                     
                     if column_number == 0 {
@@ -411,8 +420,7 @@ impl Application for TextBox {
                     button("Decode").on_press(Message::DECODE),
 
                     // button("Change Theme").on_press(Message::CHANGE),
-                    
-                    
+                                        
                 ];
 
                 let err = text(&self.error).size(18);
@@ -436,9 +444,7 @@ impl Application for TextBox {
                     column(selected_elements).spacing(10),
                     space::Space::with_height(20),row(vec_of_data).spacing(10)])
                     .width(800).into()
-                
             },
-
         }
         
     }    
@@ -549,7 +555,7 @@ fn get_user_dir(user: &str) -> PathBuf {
     match path.exists() {
         true => path.to_path_buf(),
         false => {
-            fs::create_dir(format!("./users/{}", user));
+            let _ = fs::create_dir(format!("./users/{}", user));
             PathBuf::from(format!("./users/{}", user))
         },
     }

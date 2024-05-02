@@ -9,7 +9,7 @@ use std::{fs, vec};
 use std::cmp;
 use std::path::{Path, PathBuf};
 use std::collections::HashSet;
-use orion::aead;
+// use orion::aead;
 
 pub fn start_up() -> iced::Result {
     let settings = Settings {
@@ -93,7 +93,7 @@ fn dir_to_paths(user_dir: &Path) -> Vec<PathBuf> {
 
 }
 
-fn temp_to_slice() -> Vec<u8>{
+fn _temp_to_slice() -> Vec<u8>{
     let mut f = OpenOptions::new()
     .read(true)
     .open("info/temp.txt")

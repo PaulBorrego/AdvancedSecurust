@@ -1,5 +1,4 @@
-use std::{collections::HashMap, fs::OpenOptions, io::{stdin, Read}};
-use pad::PadStr;
+use std::{collections::HashMap, fs::OpenOptions, io::Read};
 
 #[derive(PartialEq, Debug)]
 pub struct User {
@@ -37,38 +36,38 @@ impl User {
         returning_users
     }
     
-    pub fn find(mappy: &HashMap<String,User>) -> Option<String> {
-        for _ in 0..3 {
-            let mut input = String::new();
-            println!("Enter Username: ");
-            stdin().read_line(&mut input).unwrap();    
-            input.pop();
+    // pub fn find(mappy: &HashMap<String,User>) -> Option<String> {
+    //     for _ in 0..3 {
+    //         let mut input = String::new();
+    //         println!("Enter Username: ");
+    //         stdin().read_line(&mut input).unwrap();    
+    //         input.pop();
 
-            // for (k,_) in mappy {
-            //     println!("|{}:{}|",k,input);
-            // }
-            let a = mappy.get(&input.pad_to_width(32));
-            if a.is_some() {
-                for _ in 0..3 {
-                    println!("Enter Password");
-                    let mut in2 = String::new();
-                    stdin().read_line(&mut in2).unwrap();    
-                    in2.pop();                  
+    //         // for (k,_) in mappy {
+    //         //     println!("|{}:{}|",k,input);
+    //         // }
+    //         let a = mappy.get(&input.pad_to_width(32));
+    //         if a.is_some() {
+    //             for _ in 0..3 {
+    //                 println!("Enter Password");
+    //                 let mut in2 = String::new();
+    //                 stdin().read_line(&mut in2).unwrap();    
+    //                 in2.pop();                  
     
-                    if in2.pad_to_width(32).eq(&a.unwrap().password) {
-                        // return Some(input.pad_to_width(32).clone());
-                        return Some(input.clone());
-                    }
+    //                 if in2.pad_to_width(32).eq(&a.unwrap().password) {
+    //                     // return Some(input.pad_to_width(32).clone());
+    //                     return Some(input.clone());
+    //                 }
 
-                    println!("Password Denied");
-                }
-            }
-            else {
-                println!("Username Not found");
-            }
-        }
-        println!("Login Failed");
-        None
+    //                 println!("Password Denied");
+    //             }
+    //         }
+    //         else {
+    //             println!("Username Not found");
+    //         }
+    //     }
+    //     println!("Login Failed");
+    //     None
         
-    }
+    // }
 }
