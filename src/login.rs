@@ -13,56 +13,16 @@ use crate::users::User;
 
 use iced::widget::image::Handle;
 // use std::fs::{self, read, read_dir, File, OpenOptions};
-use std:: vec;
+use std::{fmt,  vec};
 use std::cmp;
 use std::collections::HashSet;
-
-#[derive(Debug,Clone)]
-pub enum Scene {
-    LOGIN,
-    REGISTER,
-    FILES,
-}
-
-//writes to file that keeps user info
-fn write_to_info(mut u: Vec<u8>,mut p: Vec<u8>, s: &[u8]) ->  Result<File, std::io::Error> {
-    let mut file = OpenOptions::new()
-            .read(true)
-            .write(true)
-            .create(true)
-            .append(true)
-            .open("info/info.txt")
-            .unwrap();
-
-    u.resize(32,32); //make the username and password take up 32 bytes
-    p.resize(32, 32);
-    
-    // let mut temp = OpenOptions::new()
-    //     .read(true)
-    //     .write(true)
-    //     .create(true)
-    //     .open("info/temp.txt")
-    //     .unwrap();
-    
-    file.write_all(&u)?;
-    file.write_all(&p)?;
-    file.write_all(s)?;
-    write!(file,"\n")?;
-
-    // temp.write_all(&u)?;
-    // temp.write_all(&p)?;
-    // temp.write_all(s.unprotected_as_bytes())?;
-    // write!(temp,"\n")?;
-
-    Ok(file)
-}
 
 pub fn main() -> iced::Result {
     let ferry = Some(window::icon::from_file("img/ferry.png").unwrap());
     let settings = Settings {
         window: window::Settings {
             size: iced::Size { width: 600.0f32, height: 300.0f32 },
-            resizable: true,
+            resizable: false,
             decorations: true,
             level: window::Level::Normal,
             position: window::Position::Centered,
@@ -73,6 +33,21 @@ pub fn main() -> iced::Result {
     };
     TextBox::run(settings)
 } 
+
+#[derive(Debug,Clone)]
+pub enum Scene {
+    LOGIN,
+    REGISTER,
+    FILES,
+}
+
+impl fmt::Display for Scene {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+        // or, alternatively:
+        // fmt::Debug::fmt(self, f)
+    }
+}
 
 #[derive(Debug,Clone)]
 pub enum Message {
@@ -108,34 +83,6 @@ pub struct TextBox {
     encrypt: bool,
 }
 
-//Things need to return true,
-//Username is between length 4 and 32
-//Password is between length 8 and 32
-//Username must be unique
-//Possibly more in future
-fn user_password_parameters(username: &[u8], password: &[u8]) -> bool {
-    username.len() >= 4 &&  username.len() <= 32 && password.len() <= 32 && password.len() >= 8 && unique_checker(username)
-}
-
-fn user_password_problems(username: &[u8], password: &[u8]) -> String {
-    let mut problem = String::new();
-    if username.len() < 4 || username.len() > 32 {
-        problem = problem + "Username needs to be between 4 and 32 characters\n";
-    }
-    if password.len() < 8 || password.len() > 32 {
-        problem = problem + "Password needs to be between 8 and 32 characters\n";
-    }
-    if !unique_checker(username) {
-        problem = problem + "Username is not unique\n";
-    }
-    problem
-}
-
-fn unique_checker(_username: &[u8]) -> bool {
-    // todo!("Should ensure no two usernames are the same!");
-    true
-}
-
 impl Application for TextBox {
 
     type Message = Message;
@@ -150,7 +97,7 @@ impl Application for TextBox {
             pass: String::new(),
             error: String::new(),
             scene: Scene::LOGIN,
-            name: String::from("login"),
+            name: String::from("LOGIN"),
             secret_key: aead::SecretKey::default(),
             user_base: User::get_existing(),
             path: PathBuf::new(),
@@ -186,7 +133,7 @@ impl Application for TextBox {
                                         self.path = fs::canonicalize(PathBuf::from("./")).unwrap(); //gets absolute path
                                         self.dir = dir_to_paths(fs::canonicalize(PathBuf::from("./")).unwrap().as_path());
                                         self.error = String::new();
-                                        return iced::window::resize(window::Id::MAIN, iced::Size::new(780.0f32,480.0f32));
+                                        return iced::window::resize(window::Id::MAIN, iced::Size::new(820.0f32,480.0f32));
 
                                     },
                                     false => self.error = String::from("Username or password is incorrect"),
@@ -196,14 +143,14 @@ impl Application for TextBox {
                         }
                     }, 
                     Scene::REGISTER => {
-                        if user_password_parameters(self.user.as_bytes(), self.pass.as_bytes()) {
+                        if user_password_parameters(self.user.as_bytes(), self.pass.as_bytes()) && !self.user_base.contains_key(&self.user.pad_to_width(32)) {
                             self.secret_key = aead::SecretKey::default();
                             write_to_info(self.user.clone().into_bytes(), self.pass.clone().into_bytes(), self.secret_key.unprotected_as_bytes()).expect("File Failure");
                             self.scene = Scene::FILES;
                             self.path = fs::canonicalize(PathBuf::from("./")).unwrap(); //gets absolute path
                             self.dir = dir_to_paths(fs::canonicalize(PathBuf::from("./")).unwrap().as_path());
                             self.error = String::new();
-                            return iced::window::resize(window::Id::MAIN, iced::Size::new(780.0f32,480.0f32));
+                            return iced::window::resize(window::Id::MAIN, iced::Size::new(820.0f32,480.0f32));
                         }
                         else {
                             self.error = user_password_problems(self.user.as_bytes(), self.pass.as_bytes());
@@ -260,7 +207,10 @@ impl Application for TextBox {
                 );
                 self.dir = dir_to_paths(&self.path);
             },
-            Message::SCENE(s) => self.scene = s,
+            Message::SCENE(s) => {
+                self.scene = s;
+                self.name = self.scene.to_string();
+            },
             Message::ENCODE => self.encrypt = true,
             Message::DECODE => self.encrypt = false,
         }
@@ -352,28 +302,32 @@ impl Application for TextBox {
             },
             Scene::FILES => {
 
-
-
                 // let window_size = iced::Size::ZERO;
                 // let _ = iced::window::fetch_size(window::Id::MAIN, move |x: iced::Size| x);
                 // println!("{}", window_size.width as u32 / 80);
                 // let number_of_columns = cmp::max(10,window_size.width as usize / 80);
 
-                let number_of_columns = 9;
+                let number_of_columns = 10;
 
                 let mut vec_of_data: Vec<Element<'_, Self::Message>> = Vec::with_capacity(number_of_columns);
 
                 let a = text(self.path.to_str().unwrap()).size(18);
 
 
-                for column_number in 0..cmp::min(number_of_columns - 1, self.dir.len()) { //Runs at MAX  times
+                for column_number in 0..cmp::min(number_of_columns, self.dir.len()) { //Runs at MAX  times
                     let mut c: Vec<Element<'_, Self::Message>> = vec![];
-                    
+
+                    let mut leftover = 0;
+
                     if column_number == 0 {
                         vec_of_data.push(space::Space::with_width(5).into());
                     }
 
-                    for row_number in 0..(self.dir.len()/(number_of_columns  + column_number)) + 1 {
+                    if self.dir.len() % number_of_columns >= column_number {
+                        leftover = 1;
+                    }
+
+                    for row_number in 0..(self.dir.len()/number_of_columns) + leftover {
                         
                         // println!("{row_number}: | {number_of_columns}: | {column_number}: |{}",(row_number * (number_of_columns - 1)) + column_number)
                         // println!("i: {}| j: {}| j*7 +i: {}",column_number,row_number,(row_number * (number_of_columns-1)) + column_number)
@@ -384,7 +338,10 @@ impl Application for TextBox {
                                 // println!("FILE:\t{}",x.file_name().unwrap().to_str().unwrap());                         
                                 c.push(
                                     column![
-                                        Button::new(x.file_name().unwrap().to_str().unwrap().get(..cmp::min(8,x.file_name().unwrap().to_str().unwrap().len())).unwrap())
+                                        Button::new(x.file_name().unwrap().to_str().unwrap().get(..cmp::min(7,x.file_name().unwrap().to_str().unwrap().len())).unwrap())
+                                        .width(70)
+                                        .height(35)
+                                        .clip(false)
                                         .on_press(Message::Selected(x.to_path_buf())),
                                         image(self.file_png.clone()).width(70).height(70),
                                     ]
@@ -396,7 +353,10 @@ impl Application for TextBox {
                                 // println!("FOLDER\t{}",x.file_name().unwrap().to_str().unwrap());                         
                                 c.push(
                                 column![
-                                    Button::new(x.file_name().unwrap().to_str().unwrap().get(..cmp::min(8, x.file_name().unwrap().to_str().unwrap().len())).unwrap())
+                                    Button::new(x.file_name().unwrap().to_str().unwrap().get(..cmp::min(7, x.file_name().unwrap().to_str().unwrap().len())).unwrap())
+                                    .width(70)
+                                    .height(35)
+                                    .clip(false)
                                     .on_press(Message::Selected(x.to_path_buf())),
                                     image(self.folder_png.clone()).width(70).height(70),
                                 ]
@@ -443,7 +403,7 @@ impl Application for TextBox {
                     b,
                     column(selected_elements).spacing(10),
                     space::Space::with_height(20),row(vec_of_data).spacing(10)])
-                    .width(800).into()
+                    .width(820).into()
             },
         }
         
@@ -549,6 +509,9 @@ fn _make_dir_if_needed(path: &str) -> () {
 
 //returns the user dir, makes one if none exists
 fn get_user_dir(user: &str) -> PathBuf {
+    if !PathBuf::from("./users").exists() {
+        let _ = fs::create_dir("./users");
+    };
 
     let path = PathBuf::from(format!("./users/{}", user));
 
@@ -606,3 +569,56 @@ fn write_to_file(s: &[u8], file: &Path, encrypt: bool, dir: &Path) ->  Result<Fi
     file.write_all(s)?;
     Ok(file)
 }
+
+//writes to file that keeps user info
+fn write_to_info(mut u: Vec<u8>,mut p: Vec<u8>, s: &[u8]) ->  Result<File, std::io::Error> {
+
+    if !PathBuf::from("./info").exists() {
+        let _ = fs::create_dir("./info");
+    };
+
+    let mut file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .append(true)
+            .open("info/info.txt")
+            .unwrap();
+
+    u.resize(32,32); //make the username and password take up 32 bytes
+    p.resize(32, 32);
+    
+    file.write_all(&u)?;
+    file.write_all(&p)?;
+    file.write_all(s)?;
+    write!(file,"\n")?;
+
+    Ok(file)
+}
+
+//Things need to return true,
+//Username is between length 4 and 32
+//Password is between length 8 and 32
+//Username must be unique
+//Possibly more in future
+fn user_password_parameters(username: &[u8], password: &[u8]) -> bool {
+    username.len() >= 4 &&  username.len() <= 32 && password.len() <= 32 && password.len() >= 8
+}
+
+//returns the problem
+fn user_password_problems(username: &[u8], password: &[u8]) -> String {
+    let mut problem = String::new();
+    if username.len() < 4 || username.len() > 32 {
+        problem = problem + "Username needs to be between 4 and 32 characters\n";
+    }
+    else if password.len() < 8 || password.len() > 32 {
+        problem = problem + "Password needs to be between 8 and 32 characters\n";
+    }
+    else {
+        problem = problem + "Username is not unique\n";
+    }
+
+    problem
+}
+
+//Make a function that will output a rust executable file that will encrypt and decrypt files from command line
