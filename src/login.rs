@@ -144,6 +144,7 @@ impl Application for TextBox {
                     }, 
                     Scene::REGISTER => {
                         if user_password_parameters(self.user.as_bytes(), self.pass.as_bytes()) && !self.user_base.contains_key(&self.user.pad_to_width(32)) {
+                            self.user_dir = get_user_dir(&self.user);
                             self.secret_key = aead::SecretKey::default();
                             write_to_info(self.user.clone().into_bytes(), self.pass.clone().into_bytes(), self.secret_key.unprotected_as_bytes()).expect("File Failure");
                             self.scene = Scene::FILES;
@@ -518,6 +519,7 @@ fn get_user_dir(user: &str) -> PathBuf {
     match path.exists() {
         true => path.to_path_buf(),
         false => {
+            println!("Created new directory");
             let _ = fs::create_dir(format!("./users/{}", user));
             PathBuf::from(format!("./users/{}", user))
         },
