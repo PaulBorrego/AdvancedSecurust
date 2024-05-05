@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::OpenOptions, io::Read};
+use std::{collections::HashMap, fs::{self, OpenOptions}, io::Read, path::PathBuf};
 
 #[derive(PartialEq, Debug)]
 pub struct User {
@@ -9,6 +9,10 @@ pub struct User {
 impl User {
     pub fn get_existing() -> HashMap<String,User> {
 
+        if !PathBuf::from("./info").exists() {
+            let _ = fs::create_dir("./info");
+        };
+        
         let mut f = OpenOptions::new()
             .read(true)
             .write(true)
