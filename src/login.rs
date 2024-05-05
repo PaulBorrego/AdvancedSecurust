@@ -58,10 +58,8 @@ pub enum Message {
     BACK,
     Selected(PathBuf),
     MOVE,
-    SELECT,
     SUBMIT,
     ENCODE,
-    DECODE,
 }
 
 #[derive(Debug)]
@@ -81,6 +79,9 @@ pub struct TextBox {
     moves: bool,
     user_dir: PathBuf,
     encrypt: bool,
+    move_select: String,
+    encrypt_decrypt: String,
+    update_message: String,
 }
 
 impl Application for TextBox {
@@ -108,7 +109,9 @@ impl Application for TextBox {
             moves: false,
             user_dir: PathBuf::new(),
             encrypt: true,
-            
+            move_select: String::from("Move"),
+            encrypt_decrypt: String::from("Decrypt"),
+            update_message: String::new(),
         }, Command::none())
     }
 
@@ -166,9 +169,18 @@ impl Application for TextBox {
                     true => self.dir = dir_to_paths(&self.path),
                 }
             },
-            Message::MOVE => self.moves = true,
-            Message::SELECT => self.moves = false,
+            Message::MOVE => match self.moves {
+                true => {
+                    self.moves = false;
+                    self.move_select = String::from("Move");
+                },
+                false =>  {
+                    self.moves = true;
+                    self.move_select = String::from("Select");
+                },
+            },
             Message::Selected(pb) => {
+                if !self.update_message.is_empty() {self.update_message = String::new();}
                 match self.moves {
                     true => {
                         match pb.is_dir() {
@@ -189,31 +201,41 @@ impl Application for TextBox {
              }
             },
             Message::SUBMIT => {
-                self.selected.iter().for_each(|f|
+                self.selected.iter().for_each(|pb|
                     match self.encrypt {
                         true => {
-                            match f.is_file() {
-                                true => file_encrypt(f, &self.secret_key, &self.user_dir).unwrap(),
-                                false => todo!(),
+                            match pb.is_file() {
+                                true => file_encrypt(pb, &self.secret_key, &self.user_dir).unwrap(),
+                                false => folder_encrypt(pb, &self.secret_key, &self.user_dir,true),
                             }
                         },
                         false => {
-                            match f.is_file() {
-                                true => file_decrypt(f, &self.secret_key, &self.user_dir).unwrap(),
-                                false => todo!(),
+                            match pb.is_file() {
+                                true => file_decrypt(pb, &self.secret_key, &self.user_dir).unwrap(),
+                                false => folder_encrypt(pb, &self.secret_key, &self.user_dir,false),
                             }
                         
                         },
                     }
                 );
+                self.update_message = String::from("Files submitted to user file!");
+                self.selected.clear();
                 self.dir = dir_to_paths(&self.path);
             },
             Message::SCENE(s) => {
                 self.scene = s;
                 self.name = self.scene.to_string();
             },
-            Message::ENCODE => self.encrypt = true,
-            Message::DECODE => self.encrypt = false,
+            Message::ENCODE => match self.encrypt {
+                true => {
+                    self.encrypt = false;
+                    self.encrypt_decrypt = String::from("Encrypt");
+                },
+                false =>  {
+                    self.encrypt = true;
+                    self.encrypt_decrypt = String::from("Decrypt");
+                },
+            },
         }
         Command::none()
     }
@@ -369,16 +391,13 @@ impl Application for TextBox {
                     }
                     vec_of_data.push(column(c).into());
                 }
-                
 
                 let b = row![
                     space::Space::with_width(20),
                     button("Back").on_press(Message::BACK),
-                    button("Move").on_press(Message::MOVE),
-                    button("Select").on_press(Message::SELECT),
+                    button(&self.move_select[..]).on_press(Message::MOVE),
                     button("SUBMIT").on_press(Message::SUBMIT),
-                    button("Encode").on_press(Message::ENCODE),
-                    button("Decode").on_press(Message::DECODE),
+                    button(&self.encrypt_decrypt[..]).on_press(Message::ENCODE),
 
                     // button("Change Theme").on_press(Message::CHANGE),
                                         
@@ -400,6 +419,7 @@ impl Application for TextBox {
                 selected_strings.iter().for_each(|s| selected_elements.push(text(s).size(18).into()));
                 
                 scrollable(column![a,
+                    text(&self.update_message).size(18),
                     err,
                     b,
                     column(selected_elements).spacing(10),
@@ -624,3 +644,29 @@ fn user_password_problems(username: &[u8], password: &[u8]) -> String {
 }
 
 //Make a function that will output a rust executable file that will encrypt and decrypt files from command line
+
+fn folder_encrypt(data_path: &Path, secret_key: &aead::SecretKey, user_path: &Path, encrypt: bool) {
+    match data_path.is_dir() { //match path points to folder
+        true => {
+            let new_path = match encrypt {
+                true => format!("{}/{}_e",
+                    user_path.to_str().unwrap(), data_path.file_name().unwrap().to_str().unwrap()),
+                false => format!("{}/{}_d",
+                    user_path.to_str().unwrap(), data_path.file_name().unwrap().to_str().unwrap()),
+            };
+
+            let _ = fs::create_dir(PathBuf::from(new_path.clone()));
+
+            dir_to_paths(data_path).iter().for_each(
+                |dp| 
+                folder_encrypt(&dp, secret_key, &PathBuf::from(&new_path), encrypt))
+        },
+        false => {
+            match encrypt {
+                true => file_encrypt(data_path, secret_key, user_path).unwrap(),
+                false => file_decrypt(data_path, secret_key, user_path).unwrap(),
+            }
+            
+        },
+    }
+} 
