@@ -570,7 +570,11 @@ fn file_decrypt(file: &Path, secret_key: &aead::SecretKey, dir: &Path) -> Result
 //will make a new file that is encrypted or decrypted
 fn write_to_file(s: &[u8], file: &Path, encrypt: bool, dir: &Path) ->  Result<File, std::io::Error> {
     
-    let file_type = file.extension().unwrap().to_str().unwrap();
+    let file_type = match file.extension() {
+        Some(x) => format!(".{}",x.to_str().unwrap()),
+        None => String::new(),
+    };
+
     let file_name = file.file_stem().unwrap().to_str().unwrap();
 
     let e_or_d = match encrypt {
@@ -578,11 +582,11 @@ fn write_to_file(s: &[u8], file: &Path, encrypt: bool, dir: &Path) ->  Result<Fi
         false => "_d",
     };
 
-    let mut temp = format!("{}/{}{}.{}",dir.to_str().unwrap(),file_name,e_or_d,file_type);
+    let mut temp = format!("{}/{}{}{}",dir.to_str().unwrap(),file_name,e_or_d,file_type);
 
     let mut i = 0;
     while Path::new(&temp).exists() {
-        temp = format!("{}/{}{}{}.{}",dir.to_str().unwrap(),i.to_string(), file_name,e_or_d,file_type);
+        temp = format!("{}/{}{}{}{}",dir.to_str().unwrap(),i.to_string(), file_name,e_or_d,file_type);
         i += 1;
     }
 
