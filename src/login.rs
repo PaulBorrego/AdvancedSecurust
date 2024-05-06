@@ -1,5 +1,6 @@
+use fs_extra::dir::get_size;
 use iced::{widget, Alignment, Element, Font, Pixels, Theme};
-use iced::widget::{button, column, text,text_input,Space,image, row, scrollable, space,Button};
+use iced::widget::{button, column, text,text_input,Space,image, row, scrollable, space,Button, ProgressBar};
 use iced::{Application, Command, Settings, executor, window};
 use std::collections::HashMap;
 use std::error::Error;
@@ -17,7 +18,7 @@ use std::{fmt,  vec};
 use std::cmp;
 use std::collections::HashSet;
 use tokio;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 
 pub fn main() -> iced::Result {
@@ -65,6 +66,8 @@ pub enum Message {
     ENCODE,
     USER,
     TEST,
+    Direct(String),
+    ENTERCUSTOM,
 }
 
 #[derive(Debug)]
@@ -88,6 +91,9 @@ pub struct TextBox {
     encrypt_decrypt: String,
     update_message: String,
     test_bool: bool,
+    custom_dir: String,
+    progress_state: bool,
+    progress: f32,
 }
 
 impl Application for TextBox {
@@ -119,6 +125,9 @@ impl Application for TextBox {
             encrypt_decrypt: String::from("Decrypt"),
             update_message: String::new(),
             test_bool: true,
+            custom_dir: String::new(),
+            progress_state: false,
+            progress: 0.0f32,
         }, Command::none())
     }
 
@@ -214,24 +223,14 @@ impl Application for TextBox {
                             match pb.is_file() {
                                 true => file_encrypt(pb, &self.secret_key, &self.user_dir).unwrap(),
                                 false => {
-                                    match self.test_bool {
-                                        true => {
-                                            let now = Instant::now();
-                                            let _ = folder_encrypt_conccur(pb.clone(), &self.secret_key, self.user_dir.clone(),true);
-                                            let a = now.elapsed().as_secs_f32();
-                                            println!("Parallel took {} seconds", a);
-
-                                        },
-                                        false => {
-                                            let now = Instant::now();
-                                            folder_encrypt(pb, &self.secret_key, &self.user_dir,true).unwrap();
-                                            let b = now.elapsed().as_secs_f32();
-                                            println!("Regular took {} seconds", b);
-
-                                        },
-                                    }
+                                        let now = Instant::now();
+                                        self.progress_state = true;
+                                        folder_encrypt_conccur(&mut self.progress, pb.clone(), &self.secret_key, self.user_dir.clone(),true);
+                                        self.progress_state = false;
+                                        let a = now.elapsed().as_secs_f32();
+                                        println!("Parallel took {} seconds", a);                                        
                                 },
-                            };
+                            }
                         },
                         false => {
                             match pb.is_file() {
@@ -240,33 +239,15 @@ impl Application for TextBox {
                                     Ok(_) => (),
                                 },
                                 false => {
-                                    match self.test_bool {
-                                        true => {
-                                            let now = Instant::now();
-                                            let _ = folder_encrypt_conccur(pb.clone(), &self.secret_key, self.user_dir.clone(),false);
-                                            let a = now.elapsed().as_secs_f32();
-                                            println!("Parallel took {} seconds", a);
+                                    let now = Instant::now();
+                                    self.progress_state = true;
+                                    let _ = folder_encrypt_conccur(&mut self.progress,pb.clone(), &self.secret_key, self.user_dir.clone(),false);
+                                    self.progress_state = false;
+                                    let a = now.elapsed().as_secs_f32();
+                                    println!("Parallel took {} seconds", a);
 
-                                        },
-                                        false => {
-                                            let now = Instant::now();
-                                            match folder_encrypt(pb, &self.secret_key, &self.user_dir,false) {
-                                                Err(_) => self.error = String::from("Unable to decrypt, wrong key"),
-                                                Ok(_) => (),
-                                            }
-                                            let b = now.elapsed().as_secs_f32();
-                                            println!("Regular took {} seconds", b);
-
-                                        },
-                                    }
                                 },
-
-                                false => match folder_encrypt(pb, &self.secret_key, &self.user_dir,false) {
-                                    Err(_) => self.error = String::from("Unable to Decrypt, wrong key"),
-                                    Ok(_) => (),
-                                },
-                            }
-                        
+                            };
                         },
                     }
                 );
@@ -300,6 +281,11 @@ impl Application for TextBox {
                     self.test_bool = true;
                 }
             }
+            Message::Direct(a) => self.custom_dir = a,
+            Message::ENTERCUSTOM => if PathBuf::from(self.custom_dir.clone()).exists() {
+                self.path = fs::canonicalize(self.custom_dir.clone()).unwrap();
+                self.dir = dir_to_paths(&self.path);
+            },
         }
         Command::none()
     }
@@ -396,7 +382,7 @@ impl Application for TextBox {
 
                 let number_of_columns = 10;
 
-                let mut vec_of_data: Vec<Element<'_, Self::Message>> = Vec::with_capacity(number_of_columns);
+                let mut vec_of_data: Vec<Element<'_, Self::Message>> = Vec::with_capacity(number_of_columns);                        
 
                 let a = text(self.path.to_str().unwrap()).size(18);
 
@@ -482,14 +468,42 @@ impl Application for TextBox {
                 selected_strings.sort_by(|a, b| a.to_lowercase().cmp(&b.to_lowercase()));
                 
                 selected_strings.iter().for_each(|s| selected_elements.push(text(s).size(18).into()));
-                
-                scrollable(column![a,
-                    text(&self.update_message).size(18),
-                    err,
-                    b,
-                    column(selected_elements).spacing(10),
-                    space::Space::with_height(20),row(vec_of_data).spacing(10)])
-                    .width(820).into()
+                match self.progress_state{
+                    true => {
+                        scrollable(column![
+                        text("here"),
+                        text_input("Empty", &self.custom_dir,)
+                            .on_input(Message::Direct)
+                            .on_submit(Message::ENTERCUSTOM)
+                            .padding(10)
+                            .size(20),  
+                        a,
+                        text(&self.update_message).size(18),
+                        ProgressBar::new(0.0..=100.0,self.progress),
+                        err,
+                        b,
+                        column(selected_elements).spacing(10),
+                        space::Space::with_height(20),row(vec_of_data).spacing(10)])
+                        .width(820).into()
+
+                    },
+                    false => {
+                        scrollable(column![
+                            text_input("Empty", &self.custom_dir,)
+                                .on_input(Message::Direct)
+                                .on_submit(Message::ENTERCUSTOM)
+                                .padding(10)
+                                .size(20),  
+                            a,
+                            text(&self.update_message).size(18),
+
+                            err,
+                            b,
+                            column(selected_elements).spacing(10),
+                            space::Space::with_height(20),row(vec_of_data).spacing(10)])
+                            .width(820).into()
+                    },
+                }
             },
         }
         
@@ -604,8 +618,7 @@ fn get_user_dir(user: &str) -> PathBuf {
     match path.exists() {
         true => path.to_path_buf(),
         false => {
-            println!("Created new directory");
-            let _ = fs::create_dir(format!("./users/{}", user));
+             let _ = fs::create_dir(format!("./users/{}", user));
             PathBuf::from(format!("./users/{}", user))
         },
     }
@@ -715,7 +728,7 @@ fn user_password_problems(username: &[u8], password: &[u8]) -> String {
 //Make a function that will output a rust executable file that will encrypt and decrypt files from command line
 
 //default folder encrypter
-fn folder_encrypt(data_path: &Path, secret_key: &aead::SecretKey, user_path: &Path, encrypt: bool) -> Result<(), Box<dyn Error>>{
+fn _folder_encrypt(data_path: &Path, secret_key: &aead::SecretKey, user_path: &Path, encrypt: bool) -> Result<(), Box<dyn Error>>{
     match data_path.is_dir() { //match path points to folder
         true => {
             let new_path = match encrypt {
@@ -729,7 +742,7 @@ fn folder_encrypt(data_path: &Path, secret_key: &aead::SecretKey, user_path: &Pa
 
             dir_to_paths(data_path).iter().for_each(
                 |dp| 
-                folder_encrypt(&dp, secret_key, &PathBuf::from(&new_path), encrypt).unwrap());
+                _folder_encrypt(&dp, secret_key, &PathBuf::from(&new_path), encrypt).unwrap());
         },
         false => {
             match encrypt {
@@ -743,46 +756,112 @@ fn folder_encrypt(data_path: &Path, secret_key: &aead::SecretKey, user_path: &Pa
 
 //attempt to make a folder encrypter with conccurency
 #[tokio::main]
-async fn folder_encrypt_conccur(data_path: PathBuf, secret_key: &aead::SecretKey, user_path: PathBuf, encrypt: bool) {
-    let mut stk: Vec<(PathBuf, PathBuf)> = vec![(data_path, user_path)];
+async fn folder_encrypt_conccur(progress: &mut f32, data_path: PathBuf, secret_key: &aead::SecretKey, user_path: PathBuf, encrypt: bool) {
+    let mut stk: Vec<(PathBuf, PathBuf)> = vec![(data_path.clone(), user_path.clone())];
+    let initial = get_size(user_path.to_str().unwrap()).unwrap();
     while !stk.is_empty() {
         let current = stk.pop().unwrap();
         match current.0.is_dir() { //match path points to folder
             true => {
                 let new_path = match encrypt {
                     true => format!("{}/{}_e",
-                        current.1.to_str().unwrap(), current.0.file_name().unwrap().to_str().unwrap()),
+                    current.1.to_str().unwrap(), current.0.file_name().unwrap().to_str().unwrap()),
                     false => format!("{}/{}_d",
-                        current.1.to_str().unwrap(), current.0.file_name().unwrap().to_str().unwrap()),
+                    current.1.to_str().unwrap(), current.0.file_name().unwrap().to_str().unwrap()),
                 };
-    
+                
                 let _ = fs::create_dir(PathBuf::from(new_path.clone()));
-    
+                
                 let p = PathBuf::from(new_path);
-
                 let mut combine: Vec<(PathBuf, PathBuf)> = dir_to_paths(&current.0).iter().map(|x| (x.clone(),p.clone())).collect();
-
                 stk.append(&mut combine);
             },
             false => {
                 tokio::spawn(a_file_encrypt_decrypt(current.0, secret_key.unprotected_as_bytes().to_vec(), current.1, encrypt));
             },
         };
-    
-    }
+    };
 
+    let size: u64 = get_size(data_path.to_str().unwrap()).unwrap();
+    let mut _user_size: u64 = 0;
+    
+    let margin = match size > 20 * u64::pow(10, 9) {
+        true => 0.95f32,
+        false => 0.99f32,
+    };
+
+    loop {
+        _user_size = get_size(user_path.to_str().unwrap()).unwrap() - initial;
+        *progress = _user_size as f32 / size as f32;
+        println!("{}",progress);
+        if *progress <= margin {
+            tokio::time::sleep(Duration::from_secs(10)).await;
+        }
+        else {
+            break;
+        }
+    }
+    
 }
 
 
-async fn a_file_encrypt_decrypt(file: PathBuf, secret_key: Vec<u8>, dir: PathBuf, encrypt: bool) {
+async fn a_file_encrypt_decrypt(file: PathBuf, secret_key: Vec<u8>, dir: PathBuf, encrypt: bool,) {
     let information: Vec<u8> = fs::read(&file).expect("fail");
-    let sec = aead::SecretKey::from_slice(&secret_key).unwrap();
+    if !information.is_empty() {
+        let sec = aead::SecretKey::from_slice(&secret_key).unwrap();
+    
+        let sealed = match encrypt {
+            true => aead::seal(&sec, &information).expect(&format!("Open problem for file {}", file.to_str().unwrap())),
+            false => aead::open(&sec, &information).expect("YOU TRIED TO OPEN AN ENCYRPTION THAT WASNT YOURS"),
+        };
+    
+        // write_to_file(&sealed, &file,encrypt, &dir).expect("FAIL");
+        let file_type = match file.extension() {
+        Some(x) => format!(".{}",x.to_str().unwrap()),
+        None => String::new(),
+        };
 
-    let sealed = match encrypt {
-        true => aead::seal(&sec, &information).expect(&format!("Open problem for file {}", file.to_str().unwrap())),
-        false => aead::open(&sec, &information).expect("YOU TRIED TO OPEN AN ENCYRPTION THAT WASNT YOURS"),
-    };
+        let file_name = file.file_stem().unwrap().to_str().unwrap();
 
-    write_to_file(&sealed, &file,true, &dir).expect("FAIL");
+        let e_or_d = match encrypt {
+            true => "_e",
+            false => "_d",
+        };
+
+        let mut temp = format!("{}/{}{}{}",dir.to_str().unwrap(),file_name,e_or_d,file_type);
+
+        let mut i = 0;
+        while Path::new(&temp).exists() {
+            temp = format!("{}/{}{}{}{}",dir.to_str().unwrap(),i.to_string(), file_name,e_or_d,file_type);
+            i += 1;
+        }
+
+        let p = Path::new(&temp);
+        let mut file = File::create(p).expect("CREATION FAILURE");
+        file.write_all(&sealed).expect("WRITING FAILURE");
+
+    }
+    else {
+        let file_type = match file.extension() {
+            Some(x) => format!(".{}",x.to_str().unwrap()),
+            None => String::new(),
+        };
+
+        let file_name = file.file_stem().unwrap().to_str().unwrap();
+        let e_or_d = match encrypt {
+            true => "_e",
+            false => "_d",
+        };
+
+        let mut temp = format!("{}/{}{}{}",dir.to_str().unwrap(),file_name,e_or_d,file_type);
+        let mut i = 0;
+
+        while Path::new(&temp).exists() {
+            temp = format!("{}/{}{}{}{}",dir.to_str().unwrap(),i.to_string(), file_name,e_or_d,file_type);
+            i += 1;
+        }
+
+        let _ = File::create(Path::new(&temp)).expect("failed to create file");
+    }
 }
 
