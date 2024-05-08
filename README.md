@@ -12,4 +12,4 @@ program will allow Encrypting and Decrypting into the User file.
 ![alt text]([[https://github.com/PaulBorrego/AdvancedSecurust/img/LOGIN.JPG?]raw=true)
 
 
-![Alt text](img/FILE.JPG.jpg?raw=true "Title")
+![Alt text](img/FILE.JPG?raw=true "Title")
