@@ -7,5 +7,9 @@ The program will then attempt to get a username and passsord from the system in 
 program will allow Encrypting and Decrypting into the User file.
 
 ![alt text]([[https://github.com/PaulBorrego/AdvancedSecurust/img/FILE.jpg?]raw=true)
-![alt text]([[https://github.com/PaulBorrego/AdvancedSecurust/img/LOGIN.jpg?]raw=true)
 
+
+![alt text]([[https://github.com/PaulBorrego/AdvancedSecurust/img/LOGIN.JPG?]raw=true)
+
+
+![Alt text](relative%20path/img/FILE.JPG.jpg?raw=true "Title")
